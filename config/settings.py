@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     # 'corsheaders',
     # 'django_celery_beat',
 
-    # Local apps (Phase 2부터 추가 예정)
-    # 'apps.accounts',
-    # 'apps.vehicles',
-    # 'apps.auctions',
+    # Local apps
+    'apps.accounts',
+    'apps.vehicles',
+    'apps.auctions',
 ]
 
 MIDDLEWARE = [
