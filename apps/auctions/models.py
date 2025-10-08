@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class AuctionHistory(models.Model):
@@ -11,7 +11,7 @@ class AuctionHistory(models.Model):
         verbose_name='차량'
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='auction_histories',
         verbose_name='사용자'
