@@ -6,6 +6,8 @@ from freezegun import freeze_time
 import jwt
 from django.conf import settings
 
+from apps.accounts.dto import LoginDTO
+
 User = get_user_model()
 
 
@@ -13,7 +15,6 @@ class TestJWTService(TestCase):
     """JWT 토큰 관리 서비스 테스트"""
 
     def setUp(self):
-        """테스트용 사용자 생성"""
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -21,7 +22,6 @@ class TestJWTService(TestCase):
         )
 
     def test_create_tokens_for_user(self):
-        """사용자를 위한 토큰 페어 생성"""
         from apps.accounts.services import JWTService
 
         jwt_service = JWTService()
@@ -35,7 +35,6 @@ class TestJWTService(TestCase):
         self.assertGreater(len(tokens['refresh']), 0)
 
     def test_access_token_contains_user_info(self):
-        """Access 토큰에 사용자 정보 포함"""
         from apps.accounts.services import JWTService
 
         jwt_service = JWTService()
@@ -53,7 +52,6 @@ class TestJWTService(TestCase):
         self.assertEqual(decoded['username'], self.user.username)
 
     def test_token_expiration_times(self):
-        """토큰 만료 시간 검증"""
         from apps.accounts.services import JWTService
 
         with freeze_time("2024-01-01 12:00:00"):
@@ -86,7 +84,6 @@ class TestJWTService(TestCase):
             self.assertLess(refresh_exp_diff, 604900)
 
     def test_staff_user_token_contains_is_staff(self):
-        """관리자 사용자 토큰에 is_staff 포함"""
         from apps.accounts.services import JWTService
 
         staff_user = User.objects.create_user(
@@ -123,6 +120,9 @@ class TestAccountService(TestCase):
             is_staff=True
         )
 
+
+
+    #TODO: 지워야 할 수 있다.
     def test_can_approve_auction_regular_user(self):
         """일반 사용자는 경매 승인 불가"""
         from apps.accounts.services import AccountService
@@ -130,6 +130,7 @@ class TestAccountService(TestCase):
         account_service = AccountService()
         self.assertFalse(account_service.can_approve_auction(self.regular_user))
 
+    # TODO: 지워야 할 수 있다.
     def test_can_approve_auction_staff_user(self):
         """관리자는 경매 승인 가능"""
         from apps.accounts.services import AccountService
@@ -138,7 +139,6 @@ class TestAccountService(TestCase):
         self.assertTrue(account_service.can_approve_auction(self.staff_user))
 
     def test_authenticate_user_success(self):
-        """올바른 인증정보로 사용자 인증 성공"""
         from apps.accounts.services import AccountService
 
         User.objects.create_user(
@@ -147,13 +147,12 @@ class TestAccountService(TestCase):
         )
 
         account_service = AccountService()
-        user = account_service.authenticate_user('testuser', 'testpass123')
+        user = account_service.authenticate_user(LoginDTO('testuser', 'testpass123'))
 
         self.assertIsNotNone(user)
         self.assertEqual(user.username, 'testuser')
 
     def test_authenticate_user_wrong_password(self):
-        """잘못된 비밀번호로 인증 실패"""
         from apps.accounts.services import AccountService
 
         User.objects.create_user(
@@ -162,15 +161,14 @@ class TestAccountService(TestCase):
         )
 
         account_service = AccountService()
-        user = account_service.authenticate_user('testuser', 'wrongpass')
+        user = account_service.authenticate_user(LoginDTO('testuser', 'wrongpass'))
 
         self.assertIsNone(user)
 
     def test_authenticate_user_nonexistent(self):
-        """존재하지 않는 사용자 인증 실패"""
         from apps.accounts.services import AccountService
 
         account_service = AccountService()
-        user = account_service.authenticate_user('nonexistent', 'anypass')
+        user = account_service.authenticate_user(LoginDTO('nonexistent', 'anypass'))
 
         self.assertIsNone(user)

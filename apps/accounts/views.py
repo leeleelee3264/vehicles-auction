@@ -27,16 +27,15 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
 
-        user = self.account_service.authenticate_user(username, password)
+        user = self.account_service.authenticate_user(serializer.to_dto())
 
         if not user:
             return Response(
                 {'error': '아이디 또는 비밀번호가 올바르지 않습니다.'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
 
         tokens = self.jwt_service.create_tokens_for_user(user)
 

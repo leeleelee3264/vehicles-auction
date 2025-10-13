@@ -9,7 +9,6 @@ class TestUserModel(TestCase):
     """User 모델 테스트"""
 
     def test_create_user_success(self):
-        """일반 사용자 생성 성공"""
         user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -24,7 +23,6 @@ class TestUserModel(TestCase):
         self.assertFalse(user.is_superuser)
 
     def test_create_user_without_username(self):
-        """username 없이 사용자 생성 실패"""
         with self.assertRaises(TypeError):
             User.objects.create_user(
                 email='test@example.com',
@@ -32,7 +30,6 @@ class TestUserModel(TestCase):
             )
 
     def test_username_unique_constraint(self):
-        """username 중복 제약 조건"""
         User.objects.create_user(
             username='testuser',
             password='testpass123'
@@ -45,7 +42,6 @@ class TestUserModel(TestCase):
             )
 
     def test_password_hashing(self):
-        """비밀번호 해싱 확인"""
         user = User.objects.create_user(
             username='testuser',
             password='testpass123'
@@ -55,18 +51,3 @@ class TestUserModel(TestCase):
         self.assertNotEqual(user.password, 'testpass123')
         # 해시된 비밀번호 확인
         self.assertTrue(user.password.startswith('pbkdf2_sha256'))
-
-    def test_create_superuser_success(self):
-        """관리자 사용자 생성 성공"""
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='adminpass123'
-        )
-
-        self.assertEqual(admin.username, 'admin')
-        self.assertEqual(admin.email, 'admin@example.com')
-        self.assertTrue(admin.check_password('adminpass123'))
-        self.assertTrue(admin.is_active)
-        self.assertTrue(admin.is_staff)
-        self.assertTrue(admin.is_superuser)

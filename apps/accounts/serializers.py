@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from apps.accounts.dto import LoginDTO
+
 User = get_user_model()
 
 
@@ -18,13 +20,17 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(
         required=True,
         allow_blank=False,
-        write_only=True,  # 응답에 포함하지 않음
+        write_only=True,
         style={'input_type': 'password'},
         error_messages={
             'required': '비밀번호를 입력해주세요.',
             'blank': '비밀번호를 입력해주세요.'
         }
     )
+
+    def to_dto(self) -> LoginDTO:
+        return LoginDTO(**self.validated_data)
+
 
 
 class UserSerializer(serializers.ModelSerializer):
