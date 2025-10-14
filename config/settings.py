@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',  # 토큰 블랙리스트 기능
+    #'rest_framework_simplejwt.token_blacklist',  # 토큰 블랙리스트 기능, 로그아웃 구현하지 않아 주석처리
+    'django_celery_beat',  # Celery Beat 스케줄러
     # 'corsheaders',
-    # 'django_celery_beat',
 
     # Local apps
     'apps.accounts',
@@ -60,21 +60,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                # messages context processor 제거
-            ],
-        },
-    },
-]
+
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -112,7 +98,7 @@ if 'test' in sys.argv:
 else:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'BACKEND': 'django_redis.cache.RedisCache',
             'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
@@ -133,8 +119,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Seoul'
 CELERY_ENABLE_UTC = False
 
-# Celery Beat
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 
 # Password validation
@@ -226,25 +210,6 @@ LOGGING = {
         },
     },
 }
-
-
-# Email backend (개발 환경용)
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-
-# Django Debug Toolbar (개발 환경용 - 추후 추가 가능)
-# if DEBUG:
-#     INSTALLED_APPS += ['debug_toolbar']
-#     MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + MIDDLEWARE
-#     INTERNAL_IPS = ['127.0.0.1']
-
-
-# CORS settings (추후 프론트엔드 연동 시)
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'

@@ -21,11 +21,11 @@ app.autodiscover_tasks()
 
 # Scheduled tasks (Celery Beat)
 app.conf.beat_schedule = {
-    # 매분마다 경매 종료 체크 (Phase 8에서 구현 예정)
-    'check-auction-end': {
-        'task': 'auctions.tasks.check_auction_end',
-        'schedule': crontab(minute='*'),  # 매분 실행
-    },
+    # 1분마다 경매 종료 체크
+    'check-expired-auctions': {
+        'task': 'apps.auctions.tasks.check_expired_auctions',
+        'schedule': crontab(minute='*/1'),  # 1분마다 실행
+    }
 }
 
 
