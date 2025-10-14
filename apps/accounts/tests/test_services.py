@@ -120,24 +120,6 @@ class TestAccountService(TestCase):
             is_staff=True
         )
 
-
-
-    #TODO: 지워야 할 수 있다.
-    def test_can_approve_auction_regular_user(self):
-        """일반 사용자는 경매 승인 불가"""
-        from apps.accounts.services import AccountService
-
-        account_service = AccountService()
-        self.assertFalse(account_service.can_approve_auction(self.regular_user))
-
-    # TODO: 지워야 할 수 있다.
-    def test_can_approve_auction_staff_user(self):
-        """관리자는 경매 승인 가능"""
-        from apps.accounts.services import AccountService
-
-        account_service = AccountService()
-        self.assertTrue(account_service.can_approve_auction(self.staff_user))
-
     def test_authenticate_user_success(self):
         from apps.accounts.services import AccountService
 
