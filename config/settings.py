@@ -4,6 +4,7 @@ Django settings for vehicle auction project.
 
 from pathlib import Path
 import os
+import sys
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.vehicles',
     'apps.auctions',
+    'apps.common',
 ]
 
 MIDDLEWARE = [
@@ -99,17 +101,26 @@ DATABASES = {
 # Cache
 # Redis configuration
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': 'vehicle_auction',
-        'TIMEOUT': 300,  # 5 minutes default timeout
+# Test 환경에서는 로컬 메모리 캐시 사용
+if 'test' in sys.argv:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'vehicle_auction',
+            'TIMEOUT': 300,  # 5 minutes default timeout
+        }
+    }
 
 
 # Celery Configuration
@@ -258,6 +269,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler',
 }
 
 # Simple JWT settings
