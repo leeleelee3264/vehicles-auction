@@ -32,7 +32,7 @@ class LoginView(APIView):
 
         if not user:
             return Response(
-                {'error': '아이디 또는 비밀번호가 올바르지 않습니다.'},
+                {'detail': '아이디 또는 비밀번호가 올바르지 않습니다.'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 

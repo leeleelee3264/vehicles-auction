@@ -104,10 +104,8 @@ class TestVehicleService(TestCase):
             images=[]
         )
 
-        with self.assertRaises(ValidationError) as ctx:
+        with self.assertRaises(Model.DoesNotExist) as ctx:
             self.service.create_vehicle(dto)
-
-        self.assertIn("모델", str(ctx.exception))
 
     @patch('apps.vehicles.models.VehicleImage.objects.create')
     def test_create_vehicle_with_images(self, mock_create_image):

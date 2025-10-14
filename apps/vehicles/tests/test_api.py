@@ -101,7 +101,7 @@ class TestVehicleCreateAPI(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # self.assertIn('images', response.data)
-        self.assertIn('5장 이상', str(response.data['error']))
+        self.assertIn('5장 이상', str(response.data['detail']))
 
     def test_create_vehicle_missing_required_fields(self):
         images = [self._create_test_image(f'test_{i}.jpg') for i in range(5)]
@@ -149,7 +149,6 @@ class TestVehicleCreateAPI(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('model_id', response.data)
 
     def test_create_vehicle_without_authentication(self):
         self.client.force_authenticate(user=None)
@@ -317,7 +316,7 @@ class TestVehicleDetailAPI(TestCase):
             reverse('vehicle-detail', kwargs={'pk': self.private_vehicle.id})
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_vehicle_detail_not_found(self):
         response = self.client.get(

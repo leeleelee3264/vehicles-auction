@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.views import APIView
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from apps.vehicles.models import Vehicle
+from apps.vehicles.models import Vehicle, Model
 from apps.vehicles.serializers import (
     VehicleCreateSerializer,
     VehicleDetailSerializer,
@@ -75,9 +76,14 @@ class VehicleCreateView(APIView):
 
         try:
             vehicle = self.vehicle_service.create_vehicle_with_images(serializer.to_dto())
-        except Exception as e:
+        except Model.DoesNotExist:
             return Response(
-                {'error': str(e)},
+                {'detail': '유효하지 않은 모델입니다.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return Response(
+                {'detail': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -105,17 +111,17 @@ class VehicleDetailView(RetrieveAPIView):
         )
 
     def get_object(self):
-        from apps.auctions.models import Auction
+
 
         pk = self.kwargs.get('pk')
 
         try:
             vehicle = self.get_queryset().get(pk=pk)
-        except Vehicle.DoesNotExist:
+        except Vehicle.DoesNotExist as e:
             raise NotFound(detail="존재하지 않는 차량입니다.")
 
         if vehicle.auction.status == Auction.Status.PENDING:
-            raise PermissionDenied(
+            raise NotFound(
                 detail="승인 대기 중인 차량은 조회할 수 없습니다."
             )
 

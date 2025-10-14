@@ -56,14 +56,6 @@ class VehicleCreateSerializer(serializers.Serializer):
         required=True
     )
 
-    def validate_model_id(self, value):
-
-        try:
-            Model.objects.get(id=value)
-        except Model.DoesNotExist:
-            raise serializers.ValidationError("유효하지 않은 모델입니다.")
-        return value
-
     def validate_year(self, value):
 
         current_year = timezone.now().year

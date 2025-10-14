@@ -15,10 +15,7 @@ class VehicleService:
 
     def create_vehicle(self, vehicle_data: VehicleCreateDTO) -> Vehicle:
 
-        try:
-            model = Model.objects.get(id=vehicle_data.model_id)
-        except Model.DoesNotExist:
-            raise ValidationError("유효하지 않은 모델입니다.")
+        model = Model.objects.get(id=vehicle_data.model_id)
 
         vehicle = Vehicle(
             model=model,
@@ -34,7 +31,6 @@ class VehicleService:
         vehicle.full_clean()
         vehicle.save()
 
-        # TODO:  여기서 말고 옥션 서비스를 호출해서 init하는 방식으로..? -> 서비스가 다른 서비스 호출
         Auction.objects.create(vehicle=vehicle)
 
         return vehicle
