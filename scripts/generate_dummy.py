@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-차량 더미 데이터를 생성하는 스크립트 (총 20대)
+차량 더미 데이터를 생성하는 스크립트 (총 100대)
 
 사용법:
     python scripts/generate_dummy.py
@@ -169,10 +169,10 @@ class DummyVehicleGenerator:
 
             # 경매 상태 결정 (가중치 적용)
             status_weights = [
-                (Auction.Status.PENDING, 0.2),              # 20% 승인대기
-                (Auction.Status.AUCTION_ACTIVE, 0.3),       # 30% 경매진행
+                (Auction.Status.PENDING, 0.1),              # 10% 승인대기
+                (Auction.Status.AUCTION_ACTIVE, 0.35),      # 35% 경매진행
                 (Auction.Status.AUCTION_ENDED, 0.2),        # 20% 경매종료
-                (Auction.Status.TRANSACTION_COMPLETE, 0.3),  # 30% 거래완료
+                (Auction.Status.TRANSACTION_COMPLETE, 0.35), # 35% 거래완료
             ]
             status = self.get_weighted_choice(status_weights)
 
@@ -234,7 +234,7 @@ class DummyVehicleGenerator:
             traceback.print_exc()
             return False
 
-    def generate_vehicles(self, count=20):
+    def generate_vehicles(self, count=100):
         """지정된 수의 차량 생성"""
         print(f"\n {count}대의 더미 차량 생성 시작...")
         print("="*50)
@@ -261,7 +261,7 @@ def main():
         print("  python scripts/import_brands.py")
         sys.exit(1)
 
-    vehicle_count = 20
+    vehicle_count = 100
 
     # 더미 데이터 생성
     generator = DummyVehicleGenerator()

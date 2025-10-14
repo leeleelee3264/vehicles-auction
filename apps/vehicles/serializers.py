@@ -79,6 +79,7 @@ class VehicleListSerializer(serializers.ModelSerializer):
     model_name = serializers.CharField(source='model.name', read_only=True)
     thumbnail_image = serializers.SerializerMethodField()
     status = serializers.CharField(source='auction.status', read_only=True)
+    auction_start_time = serializers.DateTimeField(source='auction.start_time', read_only=True)
     auction_end_time = serializers.DateTimeField(source='auction.end_time', read_only=True)
     remaining_seconds = serializers.IntegerField(source='auction.remaining_seconds', read_only=True)
 
@@ -87,7 +88,7 @@ class VehicleListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'brand_name', 'model_name', 'year',
             'mileage', 'fuel_type', 'status',
-            'auction_end_time', 'remaining_seconds',
+            'auction_start_time', 'auction_end_time', 'remaining_seconds',
             'thumbnail_image', 'region'
         ]
 
