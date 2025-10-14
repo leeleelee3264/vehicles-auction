@@ -1,22 +1,20 @@
 from celery import shared_task
-from django.utils import timezone
+from celery.utils.log import get_task_logger
+from typing import Dict
+
+logger = get_task_logger(__name__)
 
 
 @shared_task
-def check_auction_end():
-    """경매 종료 시간 체크 (매분 실행) - Phase 8에서 구현"""
-    from apps.vehicles.models import Vehicle
+def check_expired_auctions() -> Dict[str, int]:
 
-    # 경매 종료 시간이 지난 차량들 상태 변경
-    ended_vehicles = Vehicle.objects.filter(
-        status=Vehicle.Status.AUCTION_ACTIVE,
-        auction_end_time__lte=timezone.now()
-    )
+    from apps.auctions.services import AuctionService
 
-    updated_count = 0
-    for vehicle in ended_vehicles:
-        vehicle.status = Vehicle.Status.AUCTION_ENDED
-        vehicle.save()
-        updated_count += 1
+    logger.info("경매 만료 확인 태스크 시작")
 
-    return f"경매 종료 처리 완료: {updated_count}대"
+    service = AuctionService()
+    result = service.check_and_end_expired_auctions()
+
+    logger.info(f"경매 만료 확인 완료: {result['ended_count']}개 경매 종료")
+
+    return result
