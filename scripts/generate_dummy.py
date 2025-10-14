@@ -26,6 +26,7 @@ from PIL import Image
 import io
 from faker import Faker
 from apps.vehicles.models import Vehicle, Brand, CarType, Model, VehicleImage
+from apps.auctions.models import Auction
 
 fake = Faker('ko_KR')
 
@@ -154,40 +155,7 @@ class DummyVehicleGenerator:
             base_mileage = years_old * random.randint(8000, 15000)
             mileage = max(0, base_mileage + random.randint(-5000, 20000))
 
-            # 상태 결정 (가중치 적용)
-            status_weights = [
-                (Vehicle.Status.PENDING, 0.2),              # 20% 승인대기
-                (Vehicle.Status.AUCTION_ACTIVE, 0.3),       # 30% 경매진행
-                (Vehicle.Status.AUCTION_ENDED, 0.2),        # 20% 경매종료
-                (Vehicle.Status.TRANSACTION_COMPLETE, 0.3),  # 30% 거래완료
-            ]
-            status = self.get_weighted_choice(status_weights)
-
-            # 경매 시간 설정 (상태에 따라)
-            auction_start_time = None
-            auction_end_time = None
-            completed_at = None
-
-            if status == Vehicle.Status.AUCTION_ACTIVE:
-                # 경매 진행중: 시작 시간은 최근, 종료는 미래
-                hours_ago = random.randint(1, 40)
-                auction_start_time = timezone.now() - timedelta(hours=hours_ago)
-                auction_end_time = auction_start_time + timedelta(hours=48)
-
-            elif status == Vehicle.Status.AUCTION_ENDED:
-                # 경매 종료: 시작은 과거, 종료도 과거
-                days_ago = random.randint(1, 7)
-                auction_start_time = timezone.now() - timedelta(days=days_ago, hours=48)
-                auction_end_time = auction_start_time + timedelta(hours=48)
-
-            elif status == Vehicle.Status.TRANSACTION_COMPLETE:
-                # 거래 완료: 모든 시간이 과거
-                days_ago = random.randint(7, 30)
-                auction_start_time = timezone.now() - timedelta(days=days_ago, hours=48)
-                auction_end_time = auction_start_time + timedelta(hours=48)
-                completed_at = auction_end_time + timedelta(hours=random.randint(1, 24))
-
-            # 차량 생성
+            # 차량 생성 (경매 관련 필드 제거)
             vehicle = Vehicle.objects.create(
                 year=year,
                 first_registration_date=first_registration_date,
@@ -196,10 +164,48 @@ class DummyVehicleGenerator:
                 fuel_type=self.get_weighted_choice(self.FUEL_TYPES),
                 transmission=self.get_weighted_choice(self.TRANSMISSIONS),
                 mileage=mileage,
-                region=random.choice(self.REGIONS),
+                region=random.choice(self.REGIONS)
+            )
+
+            # 경매 상태 결정 (가중치 적용)
+            status_weights = [
+                (Auction.Status.PENDING, 0.2),              # 20% 승인대기
+                (Auction.Status.AUCTION_ACTIVE, 0.3),       # 30% 경매진행
+                (Auction.Status.AUCTION_ENDED, 0.2),        # 20% 경매종료
+                (Auction.Status.TRANSACTION_COMPLETE, 0.3),  # 30% 거래완료
+            ]
+            status = self.get_weighted_choice(status_weights)
+
+            # 경매 시간 설정 (상태에 따라)
+            start_time = None
+            end_time = None
+            completed_at = None
+
+            if status == Auction.Status.AUCTION_ACTIVE:
+                # 경매 진행중: 시작 시간은 최근, 종료는 미래
+                hours_ago = random.randint(1, 40)
+                start_time = timezone.now() - timedelta(hours=hours_ago)
+                end_time = start_time + timedelta(hours=48)
+
+            elif status == Auction.Status.AUCTION_ENDED:
+                # 경매 종료: 시작은 과거, 종료도 과거
+                days_ago = random.randint(1, 7)
+                start_time = timezone.now() - timedelta(days=days_ago, hours=48)
+                end_time = start_time + timedelta(hours=48)
+
+            elif status == Auction.Status.TRANSACTION_COMPLETE:
+                # 거래 완료: 모든 시간이 과거
+                days_ago = random.randint(7, 30)
+                start_time = timezone.now() - timedelta(days=days_ago, hours=48)
+                end_time = start_time + timedelta(hours=48)
+                completed_at = end_time + timedelta(hours=random.randint(1, 24))
+
+            # 경매 생성
+            auction = Auction.objects.create(
+                vehicle=vehicle,
                 status=status,
-                auction_start_time=auction_start_time,
-                auction_end_time=auction_end_time,
+                start_time=start_time,
+                end_time=end_time,
                 completed_at=completed_at
             )
 
@@ -217,7 +223,7 @@ class DummyVehicleGenerator:
 
             # 생성 정보 출력
             print(f"차량 생성: {model.car_type.brand.name} {model.car_type.name} {model.name} "
-                  f"({year}년식, {status}, {image_count}장 이미지)")
+                  f"({year}년식, {auction.status}, {image_count}장 이미지)")
 
             return True
 

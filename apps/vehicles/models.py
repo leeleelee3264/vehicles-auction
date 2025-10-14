@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.conf import settings
 
 
 class Brand(models.Model):
@@ -74,13 +75,6 @@ class Model(models.Model):
 class Vehicle(models.Model):
     """차량 모델"""
 
-    # 상태 선택지
-    class Status(models.TextChoices):
-        PENDING = 'PENDING', '승인대기'
-        AUCTION_ACTIVE = 'AUCTION_ACTIVE', '경매진행'
-        AUCTION_ENDED = 'AUCTION_ENDED', '경매종료'
-        TRANSACTION_COMPLETE = 'TRANSACTION_COMPLETE', '거래완료'
-
     # 연료 타입
     class FuelType(models.TextChoices):
         LPG = 'lpg', 'LPG'
@@ -117,17 +111,6 @@ class Vehicle(models.Model):
     mileage = models.PositiveIntegerField(verbose_name='주행거리')
     region = models.CharField(max_length=50, verbose_name='지역')
 
-    # 상태 관리
-    status = models.CharField(
-        max_length=30,
-        choices=Status.choices,
-        default=Status.PENDING,
-        verbose_name='상태'
-    )
-    auction_start_time = models.DateTimeField(null=True, blank=True)
-    auction_end_time = models.DateTimeField(null=True, blank=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-
     # 타임스탬프
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -138,44 +121,11 @@ class Vehicle(models.Model):
         verbose_name_plural = '차량 목록'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status', 'auction_end_time']),
             models.Index(fields=['model']),
         ]
 
     def __str__(self):
         return f"{self.model} ({self.year}년식)"
-
-    def clean(self):
-        """도메인 검증 로직"""
-        if self.year > timezone.now().year:
-            raise ValidationError("연식이 현재 년도보다 클 수 없습니다")
-
-        if self.first_registration_date > timezone.now().date():
-            raise ValidationError("최초등록일이 미래일 수 없습니다")
-
-    def approve_auction(self):
-        """경매 승인 - 비즈니스 로직"""
-        if self.status != self.Status.PENDING:
-            raise ValidationError("승인대기 상태만 경매 승인 가능합니다")
-
-        self.status = self.Status.AUCTION_ACTIVE
-        self.auction_start_time = timezone.now()
-        self.auction_end_time = timezone.now() + timezone.timedelta(hours=48)
-        self.save()
-
-    @property
-    def remaining_seconds(self):
-        """경매 남은 시간(초)"""
-        if self.status != self.Status.AUCTION_ACTIVE:
-            return 0
-
-        remaining = self.auction_end_time - timezone.now()
-        return max(0, int(remaining.total_seconds()))
-
-    @property
-    def is_public(self):
-        """공개 여부 - 승인대기 제외"""
-        return self.status != self.Status.PENDING
 
 
 class VehicleImage(models.Model):
@@ -202,3 +152,4 @@ class VehicleImage(models.Model):
 
     def __str__(self):
         return f"{self.vehicle} 이미지"
+
